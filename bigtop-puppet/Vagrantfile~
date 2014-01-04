@@ -1,0 +1,52 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  #vmbox = "puppetlab-centos-64-nocm"
+  vmbox = "centos6.4"
+
+  # Virtual Box implementation
+  vmboxurl = "http://puppet-vagrant-boxes.puppetlabs.com/centos-64-x64-vbox4210-nocm.box"
+
+  # hostname
+  hostname = "vagrant.bigtop1"
+
+  #First node in the cluster.
+  config.vm.define :default do |default|
+  
+    # cachier plugin for faster install,
+    # see https://github.com/fgrehm/vagrant-cachier
+    # default.cache.enable :yum
+   
+    default.vm.box = vmbox
+    default.vm.box_url = vmboxurl
+            
+    default.vm.provider :virtualbox do |vb|
+      vb.customize ["modifyvm", :id, "--memory", "2048"]
+    end
+
+    default.vm.network :private_network, ip: "10.10.10.12"
+    default.vm.hostname = hostname
+
+    default.vm.synced_folder "../bigtop-puppet", "/bigtop-puppet"
+
+    default.vm.provision :puppet do |puppet|
+      puppet.manifests_path = "manifests"
+      puppet.manifest_file  = "host.pp"
+    end
+
+    default.vm.provision :shell do |shell|
+      shell.path = "provision.sh"
+      shell.args = hostname
+    end
+
+#    default.vm.provision :puppet do |bigtop|
+#      bigtop.module_path = "../bigtop-puppet/modules"
+#      bigtop.manifests_path = "../bigtop-puppet/manifests"
+#      bigtop.manifest_file  = "site.pp"
+#    end
+
+  end
+ 
+end

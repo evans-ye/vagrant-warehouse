@@ -1,0 +1,56 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+GUEST_FOLDER = "/sync_data"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  # MASTER NODE
+  config.vm.define :master do |master|
+    master.vm.box = "centos6.4"
+    master.vm.network :public_network
+    master.vm.network :forwarded_port, host: 2210, guest: 22
+    master.vm.provider :virtualbox do |vb|
+          vb.customize ["modifyvm", :id, "--memory", "2048"]
+    end
+    config.vm.provision :shell do |shell|
+      shell.path = "provision.sh"
+      shell.args = GUEST_FOLDER + " bigtop01.evans"
+    end
+    master.vm.synced_folder "../data", GUEST_FOLDER
+    master.vm.synced_folder "../data/nn_dir", "/hdfs_shared"
+    master.vm.hostname = "bigtop01.evans"
+#    master.vm.provision :shell, inline: "rpm -ivh " + GUEST_FOLDER + "/epel-release-6-8.noarch.rpm; yum -y install puppet; " + GUEST_FOLDER + "/jdk-6u45-linux-x64-rpm.bin; mkdir -p /data/1 /data/2; echo \"alias jps='/usr/java/jdk1.6.0_45/bin/jps'\" >> ~/.bashrc; service iptables stop;"
+#    master.vm.provision :puppet do |puppet|
+#      puppet.module_path = "../data/bigtop/bigtop-deploy/puppet/modules"  
+#      puppet.manifests_path = "../data/bigtop/bigtop-deploy/puppet/manifests"
+#      puppet.manifest_file  = "site.pp"
+#      puppet.options = "--confdir=" + GUEST_FOLDER + "/bigtop/bigtop-deploy/puppet"
+#    end
+  end
+
+  # SLAVE1
+  config.vm.define :slave1 do |slave1|
+    slave1.vm.box = "centos6.4"
+    slave1.vm.network :public_network
+    slave1.vm.network :forwarded_port, host: 2211, guest: 22
+    slave1.vm.provider :virtualbox do |vb|
+          vb.customize ["modifyvm", :id, "--memory", "2048"]
+    end
+    config.vm.provision :shell do |shell|
+      shell.path = "provision.sh"
+      shell.args = GUEST_FOLDER + " bigtop02.evans"
+    end
+    slave1.vm.synced_folder "../data", GUEST_FOLDER
+    slave1.vm.synced_folder "../data/nn_dir", "/hdfs_shared"
+    slave1.vm.hostname = "bigtop02.evans"
+#    slave1.vm.provision :shell, inline: "rpm -ivh " + GUEST_FOLDER + "/epel-release-6-8.noarch.rpm; yum -y install puppet; " + GUEST_FOLDER + "/jdk-6u45-linux-x64-rpm.bin; mkdir -p /data/1 /data/2; echo \"alias jps='/usr/java/jdk1.6.0_45/bin/jps'\" >> ~/.bashrc; service iptables stop;"
+#    slave1.vm.provision :puppet do |puppet|
+#      puppet.module_path = "../data/bigtop/bigtop-deploy/puppet/modules"  
+#      puppet.manifests_path = "../data/bigtop/bigtop-deploy/puppet/manifests"
+#      puppet.manifest_file  = "site.pp"
+#      puppet.options = "--confdir=" + GUEST_FOLDER + "/bigtop/bigtop-deploy/puppet"
+#    end
+  end
+end

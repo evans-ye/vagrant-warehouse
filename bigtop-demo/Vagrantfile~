@@ -1,0 +1,25 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+GUEST_FOLDER = "/sync_data"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  # MASTER NODE
+  config.vm.define :master do |master|
+    master.vm.box = "centos6.4"
+    master.vm.network :public_network
+    master.vm.network :forwarded_port, host: 2215, guest: 22
+    master.vm.provider :virtualbox do |vb|
+          vb.customize ["modifyvm", :id, "--memory", "2048"]
+    end
+    config.vm.provision :shell do |shell|
+      shell.path = "provision.sh"
+      shell.args = "bigtop01.evans GUEST_FOLDER"
+    end
+    master.vm.synced_folder "../data", GUEST_FOLDER
+    master.vm.synced_folder "../data/nn_dir", "/hdfs_shared"
+    master.vm.hostname = "bigtop01.evans"
+  end
+end

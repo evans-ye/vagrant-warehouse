@@ -1,0 +1,44 @@
+VAGRANTFILE_API_VERSION = "2"
+Vagrant.configure("2") do |config|
+  #vmbox = "puppetlab-centos-64-nocm"
+  vmbox = "centos6.4"
+
+  # Virtual Box implementation
+  vmboxurl = "http://puppet-vagrant-boxes.puppetlabs.com/centos-64-x64-vbox4210-nocm.box"
+
+  #First node in the cluster.
+  config.vm.define :bigtop1 do |bigtop1|
+  
+    # cachier plugin for faster install,
+    # see https://github.com/fgrehm/vagrant-cachier
+    # bigtop1.cache.enable :yum
+   
+    bigtop1.vm.box = vmbox
+    bigtop1.vm.box_url = vmboxurl
+            
+    bigtop1.vm.network :private_network, ip: "10.10.10.11"
+    
+    bigtop1.vm.synced_folder "../bigtop-deploy/puppet", "/bigtop-puppet"
+    
+    bigtop1.vm.hostname = "bigtop1"
+    bigtop1.vm.provision :shell, :path => "provision.sh"
+    bigtop1.vm.provision :puppet do |puppet|
+      puppet.module_path = "/bigtop-puppet/modules"
+      puppet.manifests_path = "/bigtop-puppet/manifests"
+      puppet.manifest_file  = "site.pp"
+    end
+  end
+
+  # Master node
+  # config.vm.define :bigtop2 do |bigtop2|
+  #       bigtop2.cache.enable :yum
+  #       bigtop2.cache.auto_detect = true
+  #       bigtop2.vm.box = vmbox
+  #       bigtop2.vm.box_url = vmboxurl
+  #       bigtop2.vm.host_name = "master"
+  #       bigtop2.vm.network "private_network", ip: "10.10.10.12"
+  #       bigtop2.vm.synced_folder "./config", "/vagrant"
+  #       bigtop2.vm.provision "shell", path: "provision.sh"
+  # end
+ 
+end
